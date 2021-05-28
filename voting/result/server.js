@@ -10,8 +10,6 @@ var express = require('express'),
     server = require('http').Server(app),
     io = require('socket.io')(server);
 
-io.set('transports', ['polling']);
-
 var port = process.env.PORT || 8080;
 
 var db = process.env.POSTGRES_DB || postgres;
