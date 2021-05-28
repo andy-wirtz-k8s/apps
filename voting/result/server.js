@@ -4,8 +4,8 @@ var express = require('express'),
     { Pool } = require('pg'),
     path = require('path'),
     cookieParser = require('cookie-parser'),
-    bodyParser = require('body-parser'),
     methodOverride = require('method-override'),
+    fs = require('fs'),
     app = express(),
     server = require('http').Server(app),
     io = require('socket.io')(server);
@@ -17,14 +17,24 @@ var hostname = process.env.POSTGRES_HOST || "postgres";
 var username = process.env.POSTGRES_USER || "postgres";
 var password = process.env.POSTGRES_PASSWORD || "postgres";
 
+var optionA = process.env.OPTION_A || "Imperative";
+var optionB = process.env.OPTION_B || "Declarative";
+
 io.sockets.on('connection', function (socket) {
 
   socket.emit('message', { text : 'Welcome!' });
 
-  socket.on('subscribe', function (data) {
-    socket.join(data.channel);
+  socket.on('subscribe', function (d) {
+    socket.join(d.channel);
   });
+  io.sockets.emit("options", data.options);
+  io.sockets.emit("votes", data.content);
 });
+
+const data = {
+  options: {a: optionA, b: optionB},
+  votes: {a: 50, b: 50},
+}
 
 var pool = new pg.Pool({
   connectionString: 'postgres://' + username + ':' + password + '@' + hostname + '/' + db,
@@ -54,16 +64,15 @@ function getVotes(client) {
     if (err) {
       console.error("Error performing query: " + err);
     } else {
-      var votes = collectVotesFromResult(result);
-      io.sockets.emit("scores", JSON.stringify(votes));
+      data.votes = collectVotesFromResult(result);
+      io.sockets.emit("scores", data.votes);
     }
-
-    setTimeout(function() {getVotes(client) }, 1000);
+    setTimeout(function() { getVotes(client) }, 1000);
   });
 }
 
 function collectVotesFromResult(result) {
-  var votes = {a: 0, b: 0};
+  const votes = {a: 0, b: 0};
 
   result.rows.forEach(function (row) {
     votes[row.vote] = parseInt(row.count);
@@ -73,7 +82,6 @@ function collectVotesFromResult(result) {
 }
 
 app.use(cookieParser());
-app.use(express.urlencoded());
 app.use(express.json());
 app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(function(req, res, next) {
