@@ -12,10 +12,10 @@ var express = require('express'),
 
 var port = process.env.PORT || 8080;
 
-var db = process.env.POSTGRES_DB || postgres;
-var hostname = process.env.POSTGRES_HOST || postgres;
-var username = process.env.POSTGRES_USER || postgres;
-var password = process.env.POSTGRES_PASSWORD || postgres;
+var db = process.env.POSTGRES_DB || "postgres";
+var hostname = process.env.POSTGRES_HOST || "postgres";
+var username = process.env.POSTGRES_USER || "postgres";
+var password = process.env.POSTGRES_PASSWORD || "postgres";
 
 io.sockets.on('connection', function (socket) {
 
