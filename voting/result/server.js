@@ -10,13 +10,12 @@ var express = require('express'),
     server = require('http').Server(app),
     io = require('socket.io')(server);
 
-io.set('transports', ['polling']);
-
 var port = process.env.PORT || 8080;
 
-var serverdb = process.env.POSTGRES_DB || db;
-var username = process.env.POSTGRES_USER || postgres;
-var password = process.env.POSTGRES_PASSWORD || postgres;
+var db = process.env.POSTGRES_DB || "postgres";
+var hostname = process.env.POSTGRES_HOST || "postgres";
+var username = process.env.POSTGRES_USER || "postgres";
+var password = process.env.POSTGRES_PASSWORD || "postgres";
 
 io.sockets.on('connection', function (socket) {
 
@@ -28,7 +27,7 @@ io.sockets.on('connection', function (socket) {
 });
 
 var pool = new pg.Pool({
-  connectionString: 'postgres://' + username + ':' + password + '@' + serverdb + '/postgres'
+  connectionString: 'postgres://' + username + ':' + password + '@' + hostname + '/' + db,
 });
 
 async.retry(
@@ -74,7 +73,8 @@ function collectVotesFromResult(result) {
 }
 
 app.use(cookieParser());
-app.use(bodyParser());
+app.use(express.urlencoded());
+app.use(express.json());
 app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
